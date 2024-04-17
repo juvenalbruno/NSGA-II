@@ -7,17 +7,18 @@
 using namespace std;
 
 
-const int numObjectives = 2;                            // Número de objtivos:
-const int populationSize = 10;                         // Tamanho da população:
-const int numGenerations = 10;                         // Por exemplo, 100 gerações
+const int numObjectives  = 2;                           // Número de objtivos:
+const int populationSize = 1000;                        // Tamanho da população:
+const int numGenerations = 1000;                          
 
 
-struct Solution {   
-    vector<double> objectives;                          // Valores dos objetivos
-    double fitness;                                     // valores do fitness
+struct Solution {
+    vector<double> objectives;                         // Valores dos objetivos
+    double fitness;                                    // valores do fitness
 };
 
-// Função para inicializar a população com soluções aleatórias
+
+// Inicialização da população com soluções aleatórias
 vector<Solution> initializePopulation() {
     vector<Solution> population(populationSize);
 
@@ -25,10 +26,12 @@ vector<Solution> initializePopulation() {
         population[i].objectives.resize(numObjectives);
 
         for (int j = 0; j < numObjectives; j++) {
-            population[i].objectives[j] = (double)rand() / RAND_MAX; //Gerar valores aleatórios para os objetivos
+            //Gerar valores aleatórios para os objetivos
+            population[i].objectives[j] = (double)rand() / RAND_MAX;
         };
 
-        population[i].fitness = 0.0;    // Inicializando o fitness
+        // Inicializando o fitness
+        population[i].fitness = 0.0;
     };
 
     return population;
@@ -43,7 +46,8 @@ bool dominates(const Solution& a, const Solution& b) {
             betterInAtLeastOneObjective = true;
         }
         else if (a.objectives[i] > b.objectives[i]) {
-            return false;                               // Não domina se for pior em pelo menos um objetivo
+            // Não domina se for pior em pelo menos um objetivo
+            return false;
         };
     };
 
@@ -65,17 +69,16 @@ vector<int> calculateDominanceRanking(const vector<Solution>& population) {
     return ranking;
 };
 
-
-// Função para encontrar o índice de um elemento em um vetor
-template <typename T>
-int findIndex(const std::vector<T>& vec, const T& value) {
-    auto it = std::find(vec.begin(), vec.end(), value);
-    if (it != vec.end()) {
-        return std::distance(vec.begin(), it);
-    };
-    return -1; // Se o elemento não for encontrado, retorna -1
-};
-
+// Função para encontrar o índice de uma solução em um vetor de Solution
+int findIndex(const std::vector<Solution>& vec, const Solution& value) {
+    for (size_t i = 0; i < vec.size(); ++i) {
+        // Verifica se as soluções têm os mesmos valores de objetivos e fitness
+        if (vec[i].objectives == value.objectives && vec[i].fitness == value.fitness) {
+            return i; // Retorna o índice se a solução for encontrada
+        }
+    }
+    return -1; // Se a solução não for encontrada, retorna -1
+}
 
 // Função para seleção por torneio
 Solution tournamentSelection(const vector<Solution>& population, const vector<int>& dominanceRanking) {
@@ -94,7 +97,6 @@ Solution tournamentSelection(const vector<Solution>& population, const vector<in
     return bestSolution;
 };
 
-
 // Função para realizar crossover uniforme
 Solution uniformCrossover(const Solution& parent1, const Solution& parent2) {
     Solution offspring;
@@ -112,7 +114,6 @@ Solution uniformCrossover(const Solution& parent1, const Solution& parent2) {
     return offspring;
 }
 
-
 // Função para realizar mutação
 void mutate(Solution& solution, double mutationRate) {
     for (int i = 0; i < numObjectives; i++) {
@@ -121,7 +122,6 @@ void mutate(Solution& solution, double mutationRate) {
         };
     };
 };
-
 
 // Função para calcular o fitness de cada solução
 void calculateFitness(vector<Solution>& population, const vector<int>& dominanceRanking) {
@@ -138,22 +138,12 @@ void calculateFitness(vector<Solution>& population, const vector<int>& dominance
     };
 };
 
-template <typename T>
-int findIndex(const std::vector<T>& vec, const T& value) {
-    auto it = std::find(vec.begin(), vec.end(), value);
-    if (it != vec.end()) {
-        return std::distance(vec.begin(), it);
-    }
-    return -1; // Se o elemento não for encontrado, retorna -1
-}
-
 // NSGA-II
 void nsga2() {
-    vector<Solution> population = initializePopulation();       // Inicialização da população
+    vector<Solution> population = initializePopulation();                       // Inicialização da população
 
     for (int generation = 0; generation < numGenerations; generation++) {       // Loop principal (número fixo de gerações)
-        vector<int> dominanceRanking = calculateDominanceRanking(population);           // Avaliação de dominância e ranking
-
+        vector<int> dominanceRanking = calculateDominanceRanking(population);   // Avaliação de dominância e ranking
 
         // Seleção e crossover
         vector<Solution> offspringPopulation;
@@ -183,13 +173,18 @@ void nsga2() {
         population = nextGeneration;
     };
 
+    for (const Solution& sol : population) {
+        std::cout << "Solution: ";
+        for (double obj : sol.objectives) {
+            std::cout << obj << " ";
+        }
+        std::cout << std::endl;
+    }
 };
 
 
 int main() {
-    srand(time(nullptr)); // Inicialização da semente aleatória
-
-    nsga2(); // Chamar a função principal do NSGA-II
-
+    srand(time(nullptr));   // Inicialização da semente aleatória
+    nsga2();                // Chamar a função principal do NSGA-II
     return 0;
 }
